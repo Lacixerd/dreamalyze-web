@@ -38,12 +38,21 @@ class Dream(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
 
+    def __str__(self):
+        return f"{self.author} - {self.is_active}"
+
 class DreamMessage(models.Model):
     dream_id = models.ForeignKey(Dream, on_delete=models.CASCADE, related_name='messages')
     role = models.CharField(max_length=20)
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return f"{self.dream_id} - {self.role}"
+
 class Interpretation(models.Model):
     dream_id = models.OneToOneField(Dream, on_delete=models.CASCADE, related_name='interpretation')
     json_analyze = models.JSONField()
+
+    def __str__(self):
+        return f"Interpretation of {self.dream_id}"
