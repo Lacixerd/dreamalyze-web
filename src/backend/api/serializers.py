@@ -5,12 +5,13 @@ class UserSerializer(serializers.ModelSerializer):
     # dreams = serializers.HyperlinkedRelatedField(
     #     many=True,
     #     read_only=True,
-    #     view_name='dream-detail'
+    #     view_name='user_dream_list'
     # )
 
     class Meta:
         model = User
         fields = '__all__'
+        # fields = ['id', 'username', 'email', 'is_active', 'user_created_at', 'user_updated_at', 'user_plan', 'last_chat_at', 'next_available_chat_at', 'ip_address']
         extra_kwargs = {
             'password': {'write_only': True},
             'user_created_at': {'read_only': True},
@@ -22,9 +23,17 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 class DreamSerializer(serializers.ModelSerializer):
+    # chat_messages = serializers.HyperlinkedRelatedField(
+    #     many=True,
+    #     read_only=True,
+    #     view_name='user_dream_chat'
+    # )
+
+    author = serializers.StringRelatedField()
     class Meta:
         model = Dream
-        fields = '__all__'
+        # fields = '__all__'
+        fields = ['id', 'author', 'created_at', 'updated_at', 'is_active']
 
 class DreamMessageSerializer(serializers.ModelSerializer):
     class Meta:
