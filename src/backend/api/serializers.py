@@ -17,6 +17,8 @@ class UserSerializer(serializers.ModelSerializer):
             'password': {'write_only': True},
             'user_created_at': {'read_only': True},
             'user_updated_at': {'read_only': True},
+            'image': {'read_only': True},
+            # 'google_id': {'write_only': True},
         }
     
     def create(self, validated_data):

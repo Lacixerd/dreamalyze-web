@@ -10,6 +10,8 @@ class User(AbstractUser):
     username = models.CharField(max_length=100, unique=True)
     email = models.EmailField(unique=True)
     is_active = models.BooleanField(default=True)
+    image = models.URLField(null=True, blank=True)
+    google_id = models.CharField(max_length=255, null=True, blank=True)
 
     class Plan(models.TextChoices):
         FREE = "free", "Free"

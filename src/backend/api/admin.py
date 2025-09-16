@@ -4,8 +4,8 @@ from .models import User, Dream, DreamMessage, Analysis, UserDevice, Subscriptio
 # Register your models here.
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    fields = ('username', 'email', 'is_active', 'user_plan', 'last_chat_at', 'next_available_chat_at', 'user_created_at', 'user_updated_at')
-    list_display = ('id', 'username', 'email', 'is_active', 'user_plan', 'last_chat_at', 'next_available_chat_at', 'user_created_at', 'user_updated_at')
+    fields = ('username', 'email', 'is_active', 'google_id', 'image', 'user_plan', 'last_chat_at', 'next_available_chat_at', 'user_created_at', 'user_updated_at')
+    list_display = ('id', 'username', 'email', 'is_active', 'google_id', 'user_plan', 'last_chat_at', 'next_available_chat_at', 'user_created_at', 'user_updated_at')
     search_fields = ('email', 'username')
     # list_filter = ('is_active', 'user_plan')
     readonly_fields = ('user_created_at', 'user_updated_at')
