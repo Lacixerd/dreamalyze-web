@@ -5,8 +5,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer, TemplateHTMLRenderer
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import User, Dream, DreamMessage, Interpretation, UserDevice
-from .serializers import UserSerializer, DreamSerializer, DreamMessageSerializer, InterpretationSerializer
+from .models import User, Dream, DreamMessage, UserDevice, Analysis
+from .serializers import UserSerializer, SubscriptionSerializer, UserDeviceSerializer, DreamSerializer, DreamMessageSerializer, AnalysisSerializer
 from django.contrib.auth import authenticate
 from ipware import get_client_ip
 
