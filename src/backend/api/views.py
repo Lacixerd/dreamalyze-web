@@ -16,6 +16,8 @@ from django.utils import timezone
 
 # Create your views here.
 
+#  New Branch Test  #
+
 ## ../api/user/register/ -> POST
 class UserRegisterAPIView(APIView):
     permission_classes = [AllowAny]
