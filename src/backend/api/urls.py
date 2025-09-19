@@ -1,8 +1,8 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
 from .views import (
-    UserRegisterAPIView, UserLoginAPIView, UserDreamListAPIView, 
-    UserProfileAPIView, UserDreamCreateAPIView, UserDreamChatAPIView,
+    UserRegisterAPIView, UserLoginAPIView, UserDreamListCreateAPIView, 
+    UserProfileAPIView, UserDreamChatAPIView,
     GoogleLoginAPIView, GoogleTokenRefreshView
 )
 
@@ -16,7 +16,6 @@ urlpatterns = [
     path('user/token/verify/', TokenVerifyView.as_view(), name='user_token_verify'),
 
     path('user/me/', UserProfileAPIView.as_view(), name='user_profile'), ## GET
-    path('user/me/dreams/', UserDreamListAPIView.as_view(), name='user_dream_list'), ## GET
-    path('user/me/dreams/create/', UserDreamCreateAPIView.as_view(), name='user_dream_create'), ## POST
-    path('user/me/dreams/<int:id>/', UserDreamChatAPIView.as_view(), name='user_dream_chat'), ## GET
+    path('user/me/dreams/', UserDreamListCreateAPIView.as_view(), name='user_dream_list'), ## GET, POST
+    path('user/me/dream/<uuid:id>/messages/', UserDreamChatAPIView.as_view(), name='user_dream_chat'), ## GET
 ]

@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer, TemplateHTMLRenderer
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import User, Dream, DreamMessage, UserDevice, Analysis
+from .models import User, Dream, DreamMessage, UserDevice, Analysis, AIAnswer, UserCredits, UserPlan
 from .serializers import UserSerializer, SubscriptionSerializer, UserDeviceSerializer, DreamSerializer, DreamMessageSerializer, AnalysisSerializer
 from django.contrib.auth import authenticate
 from ipware import get_client_ip
@@ -27,7 +27,9 @@ class UserRegisterAPIView(APIView):
             registered_user = serializer.save()
             client_ip, is_routable = get_client_ip(request)
             UserDevice.objects.create(user=registered_user, device_ip=client_ip, is_active=True)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            UserCredits.objects.create(user=registered_user, total_amount=1, amount=1)
+            updated_serializer = UserSerializer(registered_user)
+            return Response(updated_serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 ## ../api/user/login/ -> POST
@@ -53,17 +55,14 @@ class UserLoginAPIView(APIView):
             UserDevice.objects.create(user=user, device_name="New Device", device_ip=client_ip, is_active=True)
 
         refresh = RefreshToken.for_user(user=user)
-        user.last_login = timezone.now()
-        user.save(update_fields=["last_login"])
+        user.update_last_login()
+
+        serializer = UserSerializer(user)
 
         return Response({
             "refresh": str(refresh),
             "access": str(refresh.access_token),
-            "user": {
-                "id": user.id,
-                "email": user.email,
-                "username": user.username,
-            }
+            "user": serializer.data
         }, status=status.HTTP_200_OK)
     
 ## ../api/user/google-login/ -> POST
@@ -105,12 +104,15 @@ class GoogleLoginAPIView(APIView):
                     username = f"{original_username}{counter}"
                     counter += 1
                 
+                free_plan = UserPlan.objects.get(plan='Free')
+
                 user = User.objects.create_user(
                     username=username,
                     email=email,
                     google_id=google_user_id,
                     image=picture,
-                    password=None
+                    password=None,
+                    user_plan=free_plan
                 )
 
             client_ip, is_routable = get_client_ip(request)
@@ -123,18 +125,15 @@ class GoogleLoginAPIView(APIView):
                     is_active=True
                 )
 
+            serializer = UserSerializer(user)
+
             refresh = RefreshToken.for_user(user=user)
             print("refresh: "+str(refresh))
             print("access: "+str(refresh.access_token))
             return Response({
                 "refresh": str(refresh),
                 "access": str(refresh.access_token),
-                "user": {
-                    "id": str(user.id),
-                    "email": user.email,
-                    "username": user.username,
-                    "image": user.image,
-                }
+                "user": serializer.data
             }, status=status.HTTP_200_OK)
 
         except ValueError:
@@ -184,16 +183,13 @@ class GoogleTokenRefreshView(APIView):
             except User.DoesNotExist:
                 return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
+        serializer = UserSerializer(user)
+
         refresh = RefreshToken.for_user(user)
         return Response({
             "refresh": str(refresh),
             "access": str(refresh.access_token),
-            "user": {
-                "id": str(user.id),
-                "email": user.email,
-                "username": user.username,
-                "image": user.image,
-            }
+            "user": serializer.data
         }, status=status.HTTP_200_OK)
     
 ## ../api/user/me/ -> GET
@@ -207,7 +203,7 @@ class UserProfileAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 ## ../api/user/me/dreams/ -> GET
-class UserDreamListAPIView(APIView):
+class UserDreamListCreateAPIView(APIView):
     permission_classes = [IsAuthenticated]
     renderer_classes = [JSONRenderer, BrowsableAPIRenderer, TemplateHTMLRenderer]
 
@@ -216,29 +212,28 @@ class UserDreamListAPIView(APIView):
         dreams = Dream.objects.filter(author=user).order_by('-created_at')
         serializer = DreamSerializer(dreams, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-## ../api/user/me/dream/create/ -> POST
-class UserDreamCreateAPIView(APIView):
-    permission_classes = [IsAuthenticated]
-    renderer_classes = [JSONRenderer, BrowsableAPIRenderer, TemplateHTMLRenderer]
-
+    
+    # TODO: Burası mesajların database'e kaydedileceği kısımdır. Şuanlık sadece deneme amaçlı böyle bir şey yaptım
     def post(self, request):
         user = request.user
         user_object = get_object_or_404(User, id=user.id)
-        if not user_object.can_send_chat():
-            return Response({'error': 'You have reached the maximum number of dreams'}, status=status.HTTP_400_BAD_REQUEST)
-        serializer = DreamSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(author=user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if user_object.credits.amount > 0:
+            serializer = DreamSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save(author=user)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"error": "Your credit is insufficient"})
     
-## ../api/user/me/dreams/<int:id>/ -> GET
+## ../api/user/me/dream/<uuid:id>/messages/ -> GET
 class UserDreamChatAPIView(APIView):
     permission_classes = [IsAuthenticated]
     renderer_classes = [JSONRenderer, BrowsableAPIRenderer, TemplateHTMLRenderer]
     
     def get(self, request, id):
-        dream_messages = DreamMessage.objects.filter(dream_id=id).order_by('created_at')
+        user = request.user
+        dream = get_object_or_404(Dream, id=id, author=user)
+        dream_messages = DreamMessage.objects.filter(dream=dream).order_by('created_at')
         serializer = DreamMessageSerializer(dream_messages, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

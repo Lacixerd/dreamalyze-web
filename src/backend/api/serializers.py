@@ -1,28 +1,45 @@
 from rest_framework import serializers
-from .models import User, Subscription, UserDevice, Dream, DreamMessage, Analysis
+from .models import User, Subscription, UserCredits, UserDevice, Dream, DreamMessage, Analysis, UserPlan
+from django.utils import timesince, timezone
+import datetime
 
 class UserSerializer(serializers.ModelSerializer):
-    # dreams = serializers.HyperlinkedRelatedField(
-    #     many=True,
-    #     read_only=True,
-    #     view_name='user_dream_list'
-    # )
+    class UserCreditsSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = UserCredits
+            fields = ['total_amount', 'amount']
+
+    credits = UserCreditsSerializer(read_only=True)
 
     class Meta:
         model = User
-        fields = '__all__'
-        # fields = ['id', 'username', 'email', 'is_active', 'user_created_at', 'user_updated_at', 'user_plan', 'last_chat_at', 'next_available_chat_at', 'ip_address']
+        fields = [
+            'id',
+            'username',
+            'email',
+            'password',
+            'is_active',
+            'image',
+            'google_id',
+            'last_chat_at',
+            'user_created_at',
+            'user_updated_at',
+            'user_deleted_at',
+            'credits'
+        ]
         extra_kwargs = {
             'id': {'read_only': True},
             'password': {'write_only': True},
             'user_created_at': {'read_only': True},
             'user_updated_at': {'read_only': True},
             'image': {'read_only': True},
-            # 'google_id': {'write_only': True},
+            'google_id': {'read_only': True},
         }
     
-    def create(self, validated_data):
-        user = User.objects.create_user(**validated_data)
+    def create(self, validated_data: dict):
+        validated_data.pop('user_plan')
+        free_plan = UserPlan.objects.get(plan="Free")
+        user = User.objects.create_user(user_plan=free_plan, **validated_data)
         return user
     
 class SubscriptionSerializer(serializers.ModelSerializer):
@@ -43,17 +60,11 @@ class UserDeviceSerializer(serializers.ModelSerializer):
         }
 
 class DreamSerializer(serializers.ModelSerializer):
-    # chat_messages = serializers.HyperlinkedRelatedField(
-    #     many=True,
-    #     read_only=True,
-    #     view_name='user_dream_chat'
-    # )
 
-    author = serializers.StringRelatedField()
+    author = serializers.StringRelatedField(read_only=True)
     class Meta:
         model = Dream
-        # fields = '__all__'
-        fields = ['id', 'author', 'created_at', 'updated_at', 'deleted_at','is_active']
+        fields = ['id', 'author', 'title', 'description', 'created_at', 'updated_at', 'deleted_at','is_active']
         extra_kwargs = {
             'id': {'read_only': True},
         }
