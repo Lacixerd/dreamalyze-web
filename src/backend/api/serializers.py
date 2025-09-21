@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Subscription, UserCredits, UserDevice, Dream, DreamMessage, Analysis, UserPlan
+from .models import User, Subscription, UserCredits, UserDevice, Dream, DreamMessage, Analysis, ProductPlan
 from django.utils import timesince, timezone
 import datetime
 
@@ -19,6 +19,7 @@ class UserSerializer(serializers.ModelSerializer):
             'email',
             'password',
             'is_active',
+            'user_plan'
             'image',
             'google_id',
             'last_chat_at',
@@ -30,6 +31,7 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'id': {'read_only': True},
             'password': {'write_only': True},
+            'user_plan': {'read_only': True},
             'user_created_at': {'read_only': True},
             'user_updated_at': {'read_only': True},
             'image': {'read_only': True},
@@ -38,7 +40,7 @@ class UserSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data: dict):
         validated_data.pop('user_plan')
-        free_plan = UserPlan.objects.get(plan="Free")
+        free_plan = ProductPlan.objects.get(plan="Free")
         user = User.objects.create_user(user_plan=free_plan, **validated_data)
         return user
     

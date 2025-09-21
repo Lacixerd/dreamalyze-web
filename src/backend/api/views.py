@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer, TemplateHTMLRenderer
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import User, Dream, DreamMessage, UserDevice, Analysis, AIAnswer, UserCredits, UserPlan
+from .models import User, Dream, DreamMessage, UserDevice, Analysis, AIAnswer, UserCredits, ProductPlan
 from .serializers import UserSerializer, SubscriptionSerializer, UserDeviceSerializer, DreamSerializer, DreamMessageSerializer, AnalysisSerializer
 from django.contrib.auth import authenticate
 from ipware import get_client_ip
@@ -104,7 +104,7 @@ class GoogleLoginAPIView(APIView):
                     username = f"{original_username}{counter}"
                     counter += 1
                 
-                free_plan = UserPlan.objects.get(plan='Free')
+                free_plan = ProductPlan.objects.get(plan='Free')
 
                 user = User.objects.create_user(
                     username=username,
@@ -213,11 +213,12 @@ class UserDreamListCreateAPIView(APIView):
         serializer = DreamSerializer(dreams, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-    # TODO: Burası mesajların database'e kaydedileceği kısımdır. Şuanlık sadece deneme amaçlı böyle bir şey yaptım
+    # TODO: Burası ilk mesajın database'e kaydedileceği kısımdır. Şuanlık sadece deneme amaçlı böyle bir şey yaptım
     def post(self, request):
         user = request.user
         user_object = get_object_or_404(User, id=user.id)
         if user_object.credits.amount > 0:
+            user_object.credits.update_current_credits()
             serializer = DreamSerializer(data=request.data)
             if serializer.is_valid():
                 serializer.save(author=user)
@@ -237,3 +238,7 @@ class UserDreamChatAPIView(APIView):
         dream_messages = DreamMessage.objects.filter(dream=dream).order_by('created_at')
         serializer = DreamMessageSerializer(dream_messages, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    # TODO: Burası ilk mesajdan sonraki mesajların yazılacağı kısımlardır.
+    def post(self, request, id):
+        pass

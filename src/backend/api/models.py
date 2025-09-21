@@ -6,13 +6,30 @@ import calendar
 import uuid 
 
 # Create your models here.
-class UserPlan(models.Model):
+class ProductPlan(models.Model):
     plan = models.CharField(max_length=100)
+    plan_description = models.TextField()
+    lemon_id = models.CharField(max_length=255)
+    price = models.FloatField()
     max_credit_amount = models.IntegerField(default=0)
     plan_created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.plan}"
+    
+class Order(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey("User", on_delete=models.CASCADE)
+    product = models.ForeignKey(ProductPlan, on_delete=models.SET_NULL, null=True)
+    lemon_checkout_id = models.CharField(max_length=255, blank=True, null=True)
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        PAID = "paid", "Paid"
+        CANCELLED = "cancelled", "Cancelled"
+
+    status = models.CharField(max_length=50, choices=Status.choices, default=Status.PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 class User(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -21,7 +38,7 @@ class User(AbstractUser):
     is_active = models.BooleanField(default=True)
     image = models.URLField(null=True, blank=True)
     google_id = models.CharField(max_length=255, null=True, blank=True)
-    user_plan = models.OneToOneField(UserPlan, on_delete=models.CASCADE, related_name="user", null=True, blank=True)
+    user_plan = models.OneToOneField(ProductPlan, on_delete=models.CASCADE, related_name="user", null=True, blank=True)
     last_chat_at = models.DateTimeField(null=True, blank=True)
     user_created_at = models.DateTimeField(auto_now_add=True)
     user_updated_at = models.DateTimeField(auto_now=True)
@@ -36,7 +53,7 @@ class User(AbstractUser):
 class Subscription(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.PROTECT, related_name="subscription")
-    subscription_plan = models.OneToOneField(UserPlan, on_delete=models.CASCADE, related_name="subscription")
+    subscription_plan = models.OneToOneField(ProductPlan, on_delete=models.CASCADE, related_name="subscription")
     price = models.FloatField()
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)

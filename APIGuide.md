@@ -1,22 +1,12 @@
-# Dreamalyze Dokümantasyonu
-
-Her database oluşturulduğunda:
-```
-python backend/manage.py makemigrations
-python backend/manage.py migrate
-python backend/manage.py createfreeplan
-```
-
-Linux sunucusuna yaz: 
-```
-0 0 * * * /path/to/venv/bin/python /path/to/project/manage.py renewcredits
-
-0 0 * * * /path/to/venv/bin/python /path/to/project/manage.py expirycontrol
-```
 
 # Dreamalyze API Dokümantasyonu
 
 Bu dokümantasyon, Dreamalyze web uygulamasının backend API'larını kullanmak için gereken tüm bilgileri içerir.
+
+## Base URL
+```
+http://localhost:8000/api/
+```
 
 ## Kimlik Doğrulama (Authentication)
 
@@ -30,29 +20,27 @@ Authorization: Bearer <access_token>
 
 ### 1. Kullanıcı Kaydı (User Registration)
 
-**Endpoint:** `POST ../api/user/register/`
-
+**Endpoint:** `POST /api/user/register/`
 **Kimlik Doğrulama:** Gerekli değil
-
 **Açıklama:** Yeni kullanıcı kaydı yapar ve otomatik olarak Free plan atar, 1 kredi verir.
 
 #### Request Format:
 ```json
 {
-    "username": "<required_username_field>",
-    "email": "<required_username_field>",
-    "password": "<required_password_field>"
+    "username": "kullanici_adi",
+    "email": "kullanici@email.com",
+    "password": "güvenli_şifre"
 }
 ```
+
 #### Response Format:
 **Başarılı (201 Created):**
 ```json
 {
-    "id": "<uuid_id>",
-    "username": "username",
-    "email": "user@email.com",
+    "id": "uuid",
+    "username": "kullanici_adi",
+    "email": "kullanici@email.com",
     "is_active": true,
-    "user_plan": "Free",
     "image": null,
     "google_id": null,
     "last_chat_at": null,
@@ -66,37 +54,41 @@ Authorization: Bearer <access_token>
 }
 ```
 
+**Hata (400 Bad Request):**
+```json
+{
+    "username": ["Bu alan gereklidir."],
+    "email": ["Geçerli bir email adresi girin."]
+}
+```
+
 ---
 
 ### 2. Kullanıcı Girişi (User Login)
 
-**Endpoint:** `POST ../api/user/login/`
-
+**Endpoint:** `POST /api/user/login/`
 **Kimlik Doğrulama:** Gerekli değil
-
 **Açıklama:** Email ve şifre ile giriş yapar, JWT token'ları döndürür.
 
 #### Request Format:
 ```json
 {
-    "email": "<user@email.com>",
-    "password": "<password>"
+    "email": "kullanici@email.com",
+    "password": "şifre"
 }
 ```
 
 #### Response Format:
 **Başarılı (200 OK):**
-> Refresh token ile access token farklıdır. Buradaki sadece bir örnektir
 ```json
 {
     "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
     "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
     "user": {
-        "id": "<uuid_id>",
-        "username": "<username>",
-        "email": "user@email.com",
+        "id": "uuid",
+        "username": "kullanici_adi",
+        "email": "kullanici@email.com",
         "is_active": true,
-        "user_plan": "Free",
         "image": null,
         "google_id": null,
         "last_chat_at": null,
@@ -129,33 +121,28 @@ Authorization: Bearer <access_token>
 
 ### 3. Google ile Giriş (Google Login)
 
-**Endpoint:** `POST ../api/user/google-login/`
-
+**Endpoint:** `POST /api/user/google-login/`
 **Kimlik Doğrulama:** Gerekli değil
-
 **Açıklama:** Google ID token ile giriş yapar. Kullanıcı yoksa otomatik oluşturur.
 
 #### Request Format:
-> Google ID Token frontend tarafından çeklirir.
 ```json
 {
-    "token": "google_id_token"
+    "token": "google_id_token_buraya"
 }
 ```
 
 #### Response Format:
 **Başarılı (200 OK):**
-> Refresh token ile access token farklıdır. Buradaki sadece bir örnektir
 ```json
 {
     "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
     "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
     "user": {
-        "id": "<uuid>",
-        "username": "username",
-        "email": "user@email.com",
+        "id": "uuid",
+        "username": "kullanici_adi",
+        "email": "kullanici@email.com",
         "is_active": true,
-        "user_plan": "Free",
         "image": "https://lh3.googleusercontent.com/...",
         "google_id": "google_user_id",
         "last_chat_at": null,
@@ -188,31 +175,27 @@ Authorization: Bearer <access_token>
 
 ### 4. Google Token Yenileme (Google Token Refresh)
 
-**Endpoint:** `POST ../api/user/google-token-refresh/`
-
+**Endpoint:** `POST /api/user/google-token-refresh/`
 **Kimlik Doğrulama:** Gerekli değil
-
 **Açıklama:** Google ID token ile mevcut kullanıcı için yeni JWT token'ları oluşturur.
 
 #### Request Format:
-> Google ID Token frontend tarafından çeklirir.
 ```json
 {
-    "token": "google_id_token"
+    "token": "google_id_token_buraya"
 }
 ```
 
 #### Response Format:
 **Başarılı (200 OK):**
-> Refresh token ile access token farklıdır. Buradaki sadece bir örnektir
 ```json
 {
     "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
     "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
     "user": {
-        "id": "<uuid>",
-        "username": "username",
-        "email": "user@email.com",
+        "id": "uuid",
+        "username": "kullanici_adi",
+        "email": "kullanici@email.com",
         // ... diğer kullanıcı bilgileri
     }
 }
@@ -230,32 +213,12 @@ Authorization: Bearer <access_token>
 ### 5. JWT Token İşlemleri
 
 #### Token Alma (Token Obtain Pair)
-**Endpoint:** `POST ../api/user/token/`
-
+**Endpoint:** `POST /api/user/token/`
 **Kimlik Doğrulama:** Gerekli değil
-
-**Açıklama:** Email ve şifre ile JWT token'ları alır. 
-
-#### Request Format:
-```json
-{
-    "email": "user@email.com",
-    "password": "password"
-}
-```
-
-#### Response Format:
-**Başarılı (200 OK):**
-> Refresh token ile access token farklıdır. Buradaki sadece bir örnektir
-```json
-{
-    "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
-    "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
-}
-```
+**Açıklama:** Email ve şifre ile JWT token'ları alır.
 
 #### Token Yenileme (Token Refresh)
-**Endpoint:** `POST ../api/user/token/refresh/`
+**Endpoint:** `POST /api/user/token/refresh/`
 **Kimlik Doğrulama:** Gerekli değil
 **Açıklama:** Refresh token ile yeni access token alır.
 
@@ -282,10 +245,8 @@ Authorization: Bearer <access_token>
 
 ### 6. Kullanıcı Profili (User Profile)
 
-**Endpoint:** `GET ../api/user/me/`
-
+**Endpoint:** `GET /api/user/me/`
 **Kimlik Doğrulama:** Gerekli (Bearer Token)
-
 **Açıklama:** Giriş yapmış kullanıcının profil bilgilerini getirir.
 
 #### Response Format:
@@ -296,7 +257,6 @@ Authorization: Bearer <access_token>
     "username": "kullanici_adi",
     "email": "kullanici@email.com",
     "is_active": true,
-    "user_plan": "Free",
     "image": "https://lh3.googleusercontent.com/...",
     "google_id": "google_user_id",
     "last_chat_at": "2025-09-20T15:30:00Z",
@@ -315,11 +275,9 @@ Authorization: Bearer <access_token>
 ### 7. Kullanıcı Rüyaları (User Dreams)
 
 #### Rüya Listesi Getirme
-**Endpoint:** `GET ../api/user/me/dreams/`
-
+**Endpoint:** `GET /api/user/me/dreams/`
 **Kimlik Doğrulama:** Gerekli (Bearer Token)
-
-**Açıklama:** Kullanıcının aktif olan tüm rüyalarını en yeniden eskiye sıralar.
+**Açıklama:** Kullanıcının tüm rüyalarını en yeniden eskiye sıralar.
 
 #### Response Format:
 **Başarılı (200 OK):**
@@ -349,21 +307,53 @@ Authorization: Bearer <access_token>
 ```
 
 #### Yeni Rüya Oluşturma
-**Endpoint:** `POST ../api/user/me/dreams/`
-
+**Endpoint:** `POST /api/user/me/dreams/`
 **Kimlik Doğrulama:** Gerekli (Bearer Token)
+**Açıklama:** Yeni rüya oluşturur. Kullanıcının kredi bakiyesi kontrol edilir.
 
-**Açıklama:** İlk mesajı göndererek yeni rüya oluşturur. Kullanıcının kredi bakiyesi kontrol edilir.
+#### Request Format:
+```json
+{
+    "title": "Rüya Başlığı (Opsiyonel)",
+    "description": "Rüya açıklaması (Opsiyonel)"
+}
+```
 
+#### Response Format:
+**Başarılı (201 Created):**
+```json
+{
+    "id": "uuid",
+    "author": "kullanici@email.com",
+    "title": "Rüya Başlığı",
+    "description": null,
+    "created_at": "2025-09-20T16:00:00Z",
+    "updated_at": "2025-09-20T16:00:00Z",
+    "deleted_at": null,
+    "is_active": true
+}
+```
 
+**Hata (Yetersiz Kredi):**
+```json
+{
+    "error": "Your credit is insufficient"
+}
+```
+
+**Hata (400 Bad Request):**
+```json
+{
+    "title": ["Bu alan boş olamaz."]
+}
+```
+
+---
 
 ### 8. Rüya Mesajları (Dream Messages)
 
-#### Mesajları çekme
-**Endpoint:** `GET ../api/user/me/dream/<uuid:id>/messages/`
-
+**Endpoint:** `GET /api/user/me/dream/<uuid:id>/messages/`
 **Kimlik Doğrulama:** Gerekli (Bearer Token)
-
 **Açıklama:** Belirtilen rüyaya ait tüm mesajları kronolojik sırayla getirir.
 
 #### Response Format:
@@ -527,3 +517,102 @@ const fetchUserProfile = async () => {
     }
 };
 ```
+
+#### 4. Rüya Listesi Getirme
+```javascript
+const fetchUserDreams = async () => {
+    const token = localStorage.getItem('access_token');
+    
+    const response = await fetch('http://localhost:8000/api/user/me/dreams/', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        }
+    });
+    
+    const dreams = await response.json();
+    
+    if (response.ok) {
+        console.log('Kullanıcı rüyaları:', dreams);
+        return dreams;
+    } else {
+        console.error('Rüya listesi hatası:', dreams);
+    }
+};
+```
+
+#### 5. Yeni Rüya Oluşturma
+```javascript
+const createDream = async (dreamData) => {
+    const token = localStorage.getItem('access_token');
+    
+    const response = await fetch('http://localhost:8000/api/user/me/dreams/', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dreamData)
+    });
+    
+    const data = await response.json();
+    
+    if (response.ok) {
+        console.log('Rüya oluşturuldu:', data);
+    } else {
+        console.error('Rüya oluşturma hatası:', data);
+    }
+};
+
+// Kullanım
+createDream({
+    title: "Garip Rüyam",
+    description: "Dün gece çok garip bir rüya gördüm..."
+});
+```
+
+#### 6. Rüya Mesajlarını Getirme
+```javascript
+const fetchDreamMessages = async (dreamId) => {
+    const token = localStorage.getItem('access_token');
+    
+    const response = await fetch(`http://localhost:8000/api/user/me/dream/${dreamId}/messages/`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        }
+    });
+    
+    const messages = await response.json();
+    
+    if (response.ok) {
+        console.log('Rüya mesajları:', messages);
+        return messages;
+    } else {
+        console.error('Mesaj getirme hatası:', messages);
+    }
+};
+```
+
+---
+
+## Önemli Notlar
+
+1. **Kredi Sistemi:** Yeni rüya oluştururken kullanıcının kredi bakiyesi kontrol edilir. Kredi yetersizse işlem gerçekleşmez.
+
+2. **Token Yönetimi:** Access token'lar belirli bir süre sonra geçersiz olur. Refresh token ile yenileme yapmanız gerekir.
+
+3. **Cihaz Takibi:** Her giriş işleminde kullanıcının IP adresi kaydedilir ve cihaz takibi yapılır.
+
+4. **Google Entegrasyonu:** Google ile giriş yaparken, kullanıcı mevcut değilse otomatik olarak oluşturulur ve Free plan atanır.
+
+5. **Rüya Açıklaması:** Rüya açıklaması otomatik olarak ilk mesajın ilk 45 karakterinden oluşturulur.
+
+6. **Mesaj Rolleri:** Mesajlar 3 farklı rol ile kaydedilir:
+   - `user`: Kullanıcı mesajları
+   - `analyst`: AI analist cevapları  
+   - `system`: Sistem mesajları
+
+Bu dokümantasyon, mevcut API yapısına göre hazırlanmıştır. API'de yapılacak değişiklikler bu dokümantasyona yansıtılmalıdır.
