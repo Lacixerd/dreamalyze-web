@@ -6,6 +6,16 @@ import calendar
 import uuid 
 
 # Create your models here.
+class SystemPrompt(models.Model):
+    class PromptType(models.TextChoices):
+        FREE = "free", "Free"
+        PRO = "pro", "Pro"
+
+    name = models.CharField(max_length=100, choices=PromptType.choices, default=PromptType.FREE)  # ör: "dream_analysis"
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
 class ProductPlan(models.Model):
     plan = models.CharField(max_length=100)
     plan_description = models.TextField()
@@ -161,7 +171,7 @@ class Dream(models.Model):
     is_active = models.BooleanField(default=True)
 
     def set_description(self, dream_id):
-        related_message = str(DreamMessage.objects.filter(dream=self).order_by('created_at').first().message)
+        related_message = str(DreamMessage.objects.filter(dream=self).order_by('created_at').first().content)
         splitted_message = related_message.rsplit(" ")
         description_list = []
         counter = 0
@@ -181,14 +191,15 @@ class Dream(models.Model):
 
 class DreamMessage(models.Model):
     dream = models.ForeignKey(Dream, on_delete=models.CASCADE, related_name='messages')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="messages")
 
     class Role(models.TextChoices):
         USER = "user", "User"
-        ANALYST = "analyst", "Analyst"
+        ASSISTANT = "assistant", "Assistant"
         SYSTEM = "system", "System"
 
     role = models.CharField(max_length=20, choices=Role.choices)
-    message = models.TextField()
+    content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

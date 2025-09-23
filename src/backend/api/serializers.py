@@ -62,22 +62,20 @@ class UserDeviceSerializer(serializers.ModelSerializer):
             'id': {'read_only': True},
         }
 
+class DreamMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DreamMessage
+        fields = ['role', 'content']
+
 class DreamSerializer(serializers.ModelSerializer):
+    messages = DreamMessageSerializer(read_only=True, many=True)
 
     author = serializers.StringRelatedField(read_only=True)
     class Meta:
         model = Dream
-        fields = ['id', 'author', 'title', 'description', 'created_at', 'updated_at', 'deleted_at','is_active']
+        fields = ['id', 'author', 'title', 'description', 'created_at', 'updated_at', 'deleted_at', 'is_active', 'messages']
         extra_kwargs = {
             'id': {'read_only': True},
-        }
-
-class DreamMessageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DreamMessage
-        fields = ['role', 'message', 'created_at']
-        extra_kwargs = {
-            'created_at': {'read_only':True}
         }
 
 class AnalysisSerializer(serializers.ModelSerializer):

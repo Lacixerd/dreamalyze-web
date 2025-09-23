@@ -1,10 +1,16 @@
 from django.contrib import admin
-from .models import User, Dream, DreamMessage, Analysis, UserDevice, Subscription, UserCredits, ProductPlan, Order
+from .models import User, Dream, DreamMessage, Analysis, UserDevice, Subscription, UserCredits, ProductPlan, Order, SystemPrompt
+
+@admin.register(SystemPrompt)
+class SystemPromptAdmin(admin.ModelAdmin):
+    fields = ('id', 'name', 'content', 'created_at', 'updated_at')
+    list_display = ('id', 'name', 'created_at', 'updated_at')
+    readonly_fields = ['id', 'created_at', 'updated_at']
 
 # Register your models here.
 @admin.register(ProductPlan)
 class ProductPlanAdmin(admin.ModelAdmin):
-    fields = ('id', 'plan', 'lemon_id', 'price', 'max_credit_amount', 'plan_created_at')
+    fields = ('id', 'plan', 'plan_description', 'lemon_id', 'price', 'max_credit_amount', 'plan_created_at')
     list_display = ('id', 'plan', 'lemon_id', 'price', 'max_credit_amount', 'plan_created_at')
     readonly_fields = ['plan_created_at', 'id']
 
@@ -54,8 +60,8 @@ class DreamAdmin(admin.ModelAdmin):
 
 @admin.register(DreamMessage)
 class DreamMessageAdmin(admin.ModelAdmin):
-    fields = ('id', 'dream', 'role', 'message', 'created_at')
-    list_display = ('id', 'dream', 'role', 'created_at')
+    fields = ('id', 'user', 'dream', 'role', 'content', 'created_at')
+    list_display = ('id', 'user', 'dream', 'role', 'created_at')
     search_fields = ('dream__id', 'role')
     # list_filter = ('role',)
     readonly_fields = ['created_at', 'id']

@@ -353,9 +353,53 @@ Authorization: Bearer <access_token>
 
 **Kimlik Doğrulama:** Gerekli (Bearer Token)
 
-**Açıklama:** İlk mesajı göndererek yeni rüya oluşturur. Kullanıcının kredi bakiyesi kontrol edilir.
+**Açıklama:** İlk mesajı göndererek yeni rüya oluşturur. Kullanıcının kredi bakiyesi kontrol edilir. Prompt bu requestte gönderilmeyecek, prompt backend'de bulunacak!!!
 
+#### Request Format:
+```json
+{
+  "dreamSerializerData": {
+    "title": "...",
+    "description": "..."
+  },
+  "message": {
+    "role": "user",
+    "content": "Kullanıcının ilk gönderdiği mesaj"
+  }
+}
+```
 
+#### Response Format:
+**Başarılı (201 CREATED):**
+```json
+{
+  "current_credits": 10,
+  "dream": {
+    "author": "cemerdem2006@gmail.com",
+    "created_at": "2025-09-23T19:54:29.771504Z",
+    "deleted_at": null,
+    "description": "...",
+    "id": "7be9f94d-be2b-4938-a5a8-0b13cb1d9d7d",
+    "is_active": true,
+    "messages": [
+      {
+        "content": "Free Plan Prompt",
+        "role": "system"
+      },
+      {
+        "content": "Example message content",
+        "role": "user"
+      },
+      {
+        "content": "None",
+        "role": "assistant"
+      }
+    ],
+    "title": "...",
+    "updated_at": "2025-09-23T19:54:29.771519Z"
+  }
+}
+```
 
 ### 8. Rüya Mesajları (Dream Messages)
 
