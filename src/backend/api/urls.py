@@ -17,5 +17,5 @@ urlpatterns = [
 
     path('user/me/', UserProfileAPIView.as_view(), name='user_profile'), ## GET
     path('user/me/dreams/', UserDreamListCreateAPIView.as_view(), name='user_dream_list'), ## GET, POST
-    path('user/me/dream/<uuid:id>/messages/', UserDreamChatAPIView.as_view(), name='user_dream_chat'), ## GET
+    path('user/me/dream/<uuid:id>/messages/', UserDreamChatAPIView.as_view(), name='user_dream_chat'), ## GET, POST
 ]

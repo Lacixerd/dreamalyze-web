@@ -9,7 +9,7 @@ import uuid
 class ProductPlan(models.Model):
     plan = models.CharField(max_length=100)
     plan_description = models.TextField()
-    lemon_id = models.CharField(max_length=255)
+    lemon_id = models.CharField(max_length=255, blank=True, null=True)
     price = models.FloatField()
     max_credit_amount = models.IntegerField(default=0)
     plan_created_at = models.DateTimeField(auto_now_add=True)
@@ -36,9 +36,10 @@ class User(AbstractUser):
     username = models.CharField(max_length=100, unique=True)
     email = models.EmailField(unique=True)
     is_active = models.BooleanField(default=True)
+    user_plan = models.OneToOneField(ProductPlan, on_delete=models.CASCADE, related_name="user", null=True, blank=True)
+    watched_ads = models.IntegerField(default=0)
     image = models.URLField(null=True, blank=True)
     google_id = models.CharField(max_length=255, null=True, blank=True)
-    user_plan = models.OneToOneField(ProductPlan, on_delete=models.CASCADE, related_name="user", null=True, blank=True)
     last_chat_at = models.DateTimeField(null=True, blank=True)
     user_created_at = models.DateTimeField(auto_now_add=True)
     user_updated_at = models.DateTimeField(auto_now=True)
@@ -82,6 +83,7 @@ class UserCredits(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="credits")
     subscription = models.ForeignKey(Subscription, on_delete=models.CASCADE, related_name="credits", blank=True, null=True)
+    credit_type = models.ForeignKey(ProductPlan, on_delete=models.CASCADE, related_name="credits", blank=True, null=True)
     total_amount = models.IntegerField(default=0)
     amount = models.IntegerField(default=0)
     minimum_balance = models.IntegerField(default=0)
@@ -91,10 +93,13 @@ class UserCredits(models.Model):
     deleted_at = models.DateTimeField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        if not self.pk and self.user and self.user.user_plan:
-            self.total_amount = self.user.user_plan.max_credit_amount
-            self.amount = self.user.user_plan.max_credit_amount
-        super().save(*args, **kwargs)
+        try:
+            if not self.pk and self.user and self.user.user_plan:
+                self.total_amount = self.user.user_plan.max_credit_amount
+                self.amount = self.user.user_plan.max_credit_amount
+            super().save(*args, **kwargs)
+        except Exception:
+            super().save(*args, **kwargs)
 
     def should_renew_today(self):
         today = date.today()

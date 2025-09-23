@@ -7,7 +7,7 @@ class UserSerializer(serializers.ModelSerializer):
     class UserCreditsSerializer(serializers.ModelSerializer):
         class Meta:
             model = UserCredits
-            fields = ['total_amount', 'amount']
+            fields = ['total_amount', 'credit_type', 'amount']
 
     credits = UserCreditsSerializer(read_only=True)
 
@@ -19,7 +19,8 @@ class UserSerializer(serializers.ModelSerializer):
             'email',
             'password',
             'is_active',
-            'user_plan'
+            'user_plan',
+            'watched_ads',
             'image',
             'google_id',
             'last_chat_at',
@@ -74,7 +75,10 @@ class DreamSerializer(serializers.ModelSerializer):
 class DreamMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = DreamMessage
-        fields = '__all__'
+        fields = ['role', 'message', 'created_at']
+        extra_kwargs = {
+            'created_at': {'read_only':True}
+        }
 
 class AnalysisSerializer(serializers.ModelSerializer):
     class Meta:

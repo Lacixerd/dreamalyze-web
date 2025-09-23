@@ -13,6 +13,7 @@ from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
 from django.conf import settings
 from django.utils import timezone
+from pprint import pprint
 
 # Create your views here.
 
@@ -26,8 +27,10 @@ class UserRegisterAPIView(APIView):
         if serializer.is_valid():
             registered_user = serializer.save()
             client_ip, is_routable = get_client_ip(request)
+            free_credit_plan = ProductPlan.objects.get(plan="Free")
+            max_credit_amount = free_credit_plan.max_credit_amount
             UserDevice.objects.create(user=registered_user, device_ip=client_ip, is_active=True)
-            UserCredits.objects.create(user=registered_user, total_amount=1, amount=1)
+            UserCredits.objects.create(user=registered_user, credit_type=free_credit_plan, total_amount=max_credit_amount, amount=max_credit_amount)
             updated_serializer = UserSerializer(registered_user)
             return Response(updated_serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -202,7 +205,7 @@ class UserProfileAPIView(APIView):
         serializer = UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-## ../api/user/me/dreams/ -> GET
+## ../api/user/me/dreams/ -> GET, POST
 class UserDreamListCreateAPIView(APIView):
     permission_classes = [IsAuthenticated]
     renderer_classes = [JSONRenderer, BrowsableAPIRenderer, TemplateHTMLRenderer]
@@ -227,18 +230,46 @@ class UserDreamListCreateAPIView(APIView):
         else:
             return Response({"error": "Your credit is insufficient"})
     
-## ../api/user/me/dream/<uuid:id>/messages/ -> GET
+## ../api/user/me/dream/<uuid:id>/messages/ -> GET, POST
 class UserDreamChatAPIView(APIView):
     permission_classes = [IsAuthenticated]
     renderer_classes = [JSONRenderer, BrowsableAPIRenderer, TemplateHTMLRenderer]
+
+    def get_queryset(self, user, id):
+        dream = get_object_or_404(Dream, id=id, author=user)
+        queryset = DreamMessage.objects.filter(dream=dream).order_by('created_at')
+        serializer = DreamMessageSerializer(queryset, many=True)
+        return serializer
     
     def get(self, request, id):
         user = request.user
-        dream = get_object_or_404(Dream, id=id, author=user)
-        dream_messages = DreamMessage.objects.filter(dream=dream).order_by('created_at')
-        serializer = DreamMessageSerializer(dream_messages, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        queryset = self.get_queryset(user=user, id=id)
+        return Response(queryset.data, status=status.HTTP_200_OK)
     
     # TODO: Burası ilk mesajdan sonraki mesajların yazılacağı kısımlardır.
     def post(self, request, id):
-        pass
+        user = request.user
+        user_dreams = Dream.objects.filter(author=user, id=id)
+        if not user_dreams:
+            return Response({"error": "Unauthorized request"}, status=status.HTTP_401_UNAUTHORIZED)
+        dream_messages = DreamMessage.objects.filter(dream_id=id)
+        if not dream_messages:
+            return Response({"error": "This endpoint cannot be used to post the first message"})
+        serializer = DreamMessageSerializer(data=request.data)
+        if serializer.is_valid():
+            user_message = serializer.save(dream_id=id)
+
+            # TODO: Buraya AI analiz fonksiyonu gelecek. user_message yapay zekaya gönderilecek
+            ai_response = "None"
+
+            analyst_message = DreamMessage.objects.create(
+                dream_id=id,
+                role="analyst",
+                message=ai_response
+            )
+
+            return Response({
+                "analyst": DreamMessageSerializer(analyst_message).data,
+                "user": DreamMessageSerializer(user_message).data
+            }, status=201)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

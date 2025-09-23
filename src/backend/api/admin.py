@@ -16,8 +16,8 @@ class OrderAdmin(admin.ModelAdmin):
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    fields = ('id', 'username', 'email', 'is_active', 'google_id', 'image', 'user_plan', 'last_chat_at', 'user_created_at', 'user_updated_at', 'user_deleted_at')
-    list_display = ('id', 'username', 'email', 'is_active', 'google_id', 'user_plan', 'last_chat_at', 'user_created_at', 'user_updated_at', 'user_deleted_at')
+    fields = ('id', 'username', 'email', 'is_active', 'google_id', 'image', 'watched_ads', 'user_plan', 'last_chat_at', 'user_created_at', 'user_updated_at', 'user_deleted_at')
+    list_display = ('id', 'username', 'email', 'is_active', 'google_id', 'watched_ads', 'user_plan', 'last_chat_at', 'user_created_at', 'user_updated_at', 'user_deleted_at')
     search_fields = ('email', 'username')
     # list_filter = ('is_active', 'user_plan')
     readonly_fields = ('user_created_at', 'user_updated_at', 'id')
@@ -32,8 +32,8 @@ class SubscriptionAdmin(admin.ModelAdmin):
 
 @admin.register(UserCredits)
 class UserCreditsAdmin(admin.ModelAdmin):
-    fields = ('id','user', 'subscription', 'total_amount', 'amount', 'minimum_balance', 'last_renewed', 'created_at', 'updated_at', 'deleted_at')
-    list_display = ('id', 'user', 'subscription', 'total_amount', 'amount', 'minimum_balance', 'last_renewed', 'created_at', 'updated_at', 'deleted_at')
+    fields = ('id','user', 'subscription', 'credit_type', 'total_amount', 'amount', 'minimum_balance', 'last_renewed', 'created_at', 'updated_at', 'deleted_at')
+    list_display = ('id', 'user', 'subscription', 'credit_type', 'total_amount', 'amount', 'minimum_balance', 'last_renewed', 'created_at', 'updated_at', 'deleted_at')
     search_fields = ('user__email',)
     readonly_fields = ('created_at', 'updated_at', 'last_renewed', 'id')
     
