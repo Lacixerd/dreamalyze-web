@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer, TemplateHTMLRenderer
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import User, Dream, DreamMessage, UserDevice, Analysis, AIAnswer, UserCredits, ProductPlan, SystemPrompt
+from .models import User, Dream, DreamMessage, UserDevice, Analysis, AIAnswer, UserCredits, ProductPlan, SystemPrompt, Subscription
 from .serializers import UserSerializer, SubscriptionSerializer, UserDeviceSerializer, DreamSerializer, DreamMessageSerializer, AnalysisSerializer
 from django.contrib.auth import authenticate
 from ipware import get_client_ip
@@ -206,8 +206,9 @@ class UserProfileAPIView(APIView):
 
     def get(self, request):
         user = request.user
+        get_subscriber = Subscription.objects.filter(user=user, is_active=True)
         serializer = UserSerializer(user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({"user_profile": serializer.data, "subscriber_profile": "None" if not get_subscriber else SubscriptionSerializer(get_subscriber).data}, status=status.HTTP_200_OK)
     
 ## ../api/user/me/dreams/ -> GET, POST
 class UserDreamListCreateAPIView(APIView):
