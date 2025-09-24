@@ -1,13 +1,13 @@
 from django.contrib import admin
 from .models import User, Dream, DreamMessage, Analysis, UserDevice, Subscription, UserCredits, ProductPlan, Order, SystemPrompt
 
+# Register your models here.
 @admin.register(SystemPrompt)
 class SystemPromptAdmin(admin.ModelAdmin):
     fields = ('id', 'name', 'content', 'created_at', 'updated_at')
     list_display = ('id', 'name', 'created_at', 'updated_at')
     readonly_fields = ['id', 'created_at', 'updated_at']
 
-# Register your models here.
 @admin.register(ProductPlan)
 class ProductPlanAdmin(admin.ModelAdmin):
     fields = ('id', 'plan', 'plan_description', 'lemon_id', 'price', 'max_credit_amount', 'plan_created_at')
@@ -68,7 +68,7 @@ class DreamMessageAdmin(admin.ModelAdmin):
 
 @admin.register(Analysis)
 class AnalysisAdmin(admin.ModelAdmin):
-    fields = ('id', 'dream', 'json_analyze', 'status', 'error', 'created_at', 'updated_at', 'deleted_at')
-    list_display = ('id', 'dream', 'status', 'error', 'created_at', 'updated_at', 'deleted_at')
+    fields = ('id', 'dream', 'json_analyze', 'error', 'created_at', 'updated_at', 'deleted_at')
+    list_display = ('id', 'dream', 'error', 'created_at', 'updated_at', 'deleted_at')
     readonly_fields = ('created_at', 'updated_at', 'id')
 

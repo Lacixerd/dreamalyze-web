@@ -129,6 +129,7 @@ celerybeat.pid
 
 # Environments
 .env
+APIGUIDE.md
 .venv
 env/
 venv/

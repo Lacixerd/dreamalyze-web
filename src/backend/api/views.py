@@ -16,6 +16,7 @@ from django.utils import timezone
 from pprint import pprint
 from django.conf import settings
 from openai import OpenAI
+import json
 
 # Create your views here.
 
@@ -263,9 +264,20 @@ class UserDreamListCreateAPIView(APIView):
                         content=ai_response
                     )
 
+                    analysis = Analysis.objects.create(
+                        dream = dream,
+                        json_analyze = json.loads(ai_response),
+                        error = None
+                    )
+
+                    analysis_serializer = AnalysisSerializer(analysis)
                     serializer = DreamSerializer(dream)
 
-                    return Response({"dream":serializer.data, "current_credits": current_credits}, status=status.HTTP_201_CREATED)
+                    return Response({
+                        "dream":serializer.data, 
+                        "final_analyze": analysis_serializer.data, 
+                        "current_credits": current_credits
+                    }, status=status.HTTP_201_CREATED)
                 return Response(message_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
@@ -315,6 +327,8 @@ class UserDreamChatAPIView(APIView):
             # ai_response = self.send_to_ai(id=id, user=user)
             ai_response = "None"
 
+            total_messages = DreamMessage.objects.filter(dream_id=id, user=user).count()
+
             analyst_message = DreamMessage.objects.create(
                 dream_id=id,
                 user=user,
@@ -322,8 +336,21 @@ class UserDreamChatAPIView(APIView):
                 content=ai_response
             )
 
-            return Response({
-                "analyst": DreamMessageSerializer(analyst_message).data,
-                "user": DreamMessageSerializer(user_message).data
-            }, status=201)
+            if total_messages == 8:
+                analysis = Analysis.objects.create(
+                    dream_id = id,
+                    json_analyze = json.loads(ai_response),
+                    error = None
+                )
+
+                return Response({
+                    "user_message": DreamMessageSerializer(user_message).data,
+                    "analyst_response": DreamMessageSerializer(analyst_message).data,
+                    "final_analyze": AnalysisSerializer(analysis).data
+                }, status=201)
+            elif total_messages < 8:
+                return Response({
+                    "user_message": DreamMessageSerializer(user_message).data,
+                    "analyst_response": DreamMessageSerializer(analyst_message).data
+                }, status=201)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

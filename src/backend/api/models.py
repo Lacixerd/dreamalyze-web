@@ -209,14 +209,6 @@ class Analysis(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     dream = models.OneToOneField(Dream, on_delete=models.CASCADE, related_name='interpretation')
     json_analyze = models.JSONField()
-
-    class AnalysisStatus(models.TextChoices):
-        PENDING = "PENDING", "Pending"
-        PROCESSING = "PROCESSING", "Processing"
-        COMPLETED = "COMPLETED", "Completed"
-        FAILED = "FAILED", "Failed"
-
-    status = models.CharField(max_length=50, choices=AnalysisStatus.choices, default=AnalysisStatus.PENDING)
     error = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
