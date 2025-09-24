@@ -254,8 +254,8 @@ class UserDreamListCreateAPIView(APIView):
                     message_serializer.save(dream=dream, user=user)
 
                     # TODO: yapay zeka'ya gönderme fonksiyonu gelecek buraya
-                    ai_response = "None"
-                    # ai_response = self.send_to_ai(user=user, dream=dream)
+                    # ai_response = "None"
+                    ai_response = self.send_to_ai(user=user, dream=dream)
 
                     analyst_message = DreamMessage.objects.create(
                         dream=dream,
@@ -324,8 +324,8 @@ class UserDreamChatAPIView(APIView):
             user_message = serializer.save(dream_id=id, user=user)
 
             # TODO: Buraya AI analiz fonksiyonu gelecek. user_message yapay zekaya gönderilecek
-            # ai_response = self.send_to_ai(id=id, user=user)
-            ai_response = "None"
+            ai_response = self.send_to_ai(id=id, user=user)
+            # ai_response = "None"
 
             total_messages = DreamMessage.objects.filter(dream_id=id, user=user).count()
 
