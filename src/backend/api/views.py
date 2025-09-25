@@ -14,7 +14,6 @@ from google.oauth2 import id_token
 from django.conf import settings
 from django.utils import timezone
 from pprint import pprint
-from django.conf import settings
 from openai import OpenAI
 import json
 
@@ -156,6 +155,14 @@ class GoogleTokenRefreshView(APIView):
     renderer_classes = [JSONRenderer, BrowsableAPIRenderer, TemplateHTMLRenderer]
 
     def post(self, request):
+        refresh_token_str = request.data.get('refresh')
+        if not refresh_token_str:
+            return Response({'error': 'Refresh token is required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            refresh = RefreshToken(refresh_token_str)
+        except Exception as e:
+            return Response({'error': 'Invalid refresh token', 'error_message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
         google_id_token = request.data.get('token')
         if not google_id_token:
             return Response({'error': 'Google ID token is required'}, status=status.HTTP_400_BAD_REQUEST)
@@ -193,9 +200,7 @@ class GoogleTokenRefreshView(APIView):
 
         serializer = UserSerializer(user)
 
-        refresh = RefreshToken.for_user(user)
         return Response({
-            "refresh": str(refresh),
             "access": str(refresh.access_token),
             "user": serializer.data
         }, status=status.HTTP_200_OK)
