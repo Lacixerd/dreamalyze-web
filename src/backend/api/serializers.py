@@ -41,6 +41,7 @@ class UserSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data: dict):
         validated_data.pop('user_plan')
+        validated_data.pop('credits')
         free_plan = ProductPlan.objects.get(plan="Free")
         user = User.objects.create_user(user_plan=free_plan, **validated_data)
         return user
