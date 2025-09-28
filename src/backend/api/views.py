@@ -79,8 +79,6 @@ class GoogleLoginAPIView(APIView):
 
     def post(self, request):
         try:
-            # Evet, buradaki token sadece Google ile giriş işlemi sırasında kullanıcının kimliğini doğrulamak için kullanılıyor.
-            # Uygulama içerisinde başka bir yerde bu tokeni kullanmayacaksın.
             token = request.data.get('token')
             
             if not token:
